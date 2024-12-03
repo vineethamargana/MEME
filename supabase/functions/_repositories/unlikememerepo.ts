@@ -5,11 +5,11 @@ export default async function unlikeMemeRepository(meme_id: string, user_id: str
         // 1. Check if user exists
         const { data: existingUser, error: userError } = await supabase
             .from('users')
-            .select('user_id')
+            .select('*')
             .eq('user_id', user_id)
             .single();
 
-        if (userError || !existingUser) {
+        if (userError || !existingUser  || existingUser.account_status === "suspended") {
             return {
                 status: 403,
                 message: "User does not exist or is not authorized to unlike memes."
@@ -19,7 +19,7 @@ export default async function unlikeMemeRepository(meme_id: string, user_id: str
         // 2. Check if meme exists
         const { data: existingMeme, error: memeError } = await supabase
             .from('memes')
-            .select('meme_id, like_count')
+            .select('*')
             .eq('meme_id', meme_id)
             .single();
 

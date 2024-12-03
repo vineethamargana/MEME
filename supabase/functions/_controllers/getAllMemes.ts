@@ -2,8 +2,15 @@ import getAllMemesRepo from "../_repositories/getAllMemesRepo.ts";
 import { ApiResponseClass } from "../ApiResponse/ApiResponse.ts";
 import { HTTP_STATUS_CODES } from "../_shared/_constants/StatusCodes.ts";
 
-export default async function getAllMemes() {
+export default async function getAllMemes(req:Request) {
     try {
+        if(req.method !== "GET")
+        {
+            return new Response(
+                JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Method Not Allowed"], "Only GET method is supported")),
+                { status: 405 }
+            );
+        }
         const result = await getAllMemesRepo();
 
         if (result.status !== 200) {

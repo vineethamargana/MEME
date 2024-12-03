@@ -1,16 +1,11 @@
 import { MemeImpl } from "../_models/Meme1Model.ts";
 import supabase from "../_shared/_config/supabaseClient.ts";
 
-export default async function updateMemebyId(
-    meme: Partial<MemeImpl>,
-    meme_id: string,
-    user_id: string,
-    is_admin: boolean
-) {
+export default async function updateMemebyId(meme: Partial<MemeImpl>, meme_id: string) {
     try {
         const { data: existingMeme, error: fetchError } = await supabase
             .from("memes")
-            .select("user_id")
+            .select("*")
             .eq("meme_id", meme_id)
             .single();
 
@@ -19,21 +14,26 @@ export default async function updateMemebyId(
         }
 
         // Check if user is authorized to update the meme
-        if (!is_admin && existingMeme.user_id !== user_id) {
-            return { status: 403, message: "User not authorized to update this meme." };
+        const {data:existinguser,error:existingusererror} = await supabase
+        .from("users")
+        .select("*")
+        .eq("user_id", existingMeme.user_id).single();
+
+        if (existingusererror ||!existinguser) {
+            return { status: 403, message: "User not found." };
         }
+        if (existinguser.user_type !== 'M'  || existinguser.user_type !=='A' ) {
+            return { status: 403, message: "User not authorized to delete this meme." };
+        }
+
 
         // Check for conflicts
-        const { data: conflictCheck, error: conflictError } = await supabase
-            .from("memes")
-            .select("meme_id")
-            .eq("meme_title", meme.meme_title)
-            .neq("meme_id", meme_id);
-
-        if (conflictCheck && conflictCheck.length > 0 ||conflictError) {
-            return { status: 409, message: "Meme title conflicts with another meme." };
+        if(existingMeme.meme_title === meme.meme_title)
+        {
+            return { status: 409, message: "meme with same title already exist" };
         }
 
+        
         // Perform the update
         const { data, error } = await supabase
             .from("memes")

@@ -6,9 +6,16 @@ import { ApiResponseClass } from "../ApiResponse/ApiResponse.ts";
 export default async function unlikememecontroller(req:Request)
 {
     try{
+    if(req.method !== "DELETE")
+    {
+        return new Response(
+            JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Method Not Allowed"], "Only DELETE method is supported")),
+            { status: 405 }
+        );
+    }
     const url = new URL(req.url);
     const meme_id = url.searchParams.get('meme_id');
-    const user_id = req.headers.get('user_id');
+    const user_id = url.searchParams.get('user_id');
     if (!meme_id) {
         return new Response(
             JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Missing meme_id parameter")),
@@ -18,7 +25,7 @@ export default async function unlikememecontroller(req:Request)
 
     if (!user_id) {
         return new Response(
-            JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Forbidden"], "User not authorized to access please provide userid")),
+            JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Missing user_id parameter")),
             { status: 403 }
         );
     }

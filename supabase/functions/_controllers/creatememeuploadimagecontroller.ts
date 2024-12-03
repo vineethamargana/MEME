@@ -1,12 +1,18 @@
 import { MemeImpl } from "../_models/Meme1Model.ts";
-import creatememeRepo from "../_repositories/creatememeRepo.ts";
 import { ApiResponseClass } from "../ApiResponse/ApiResponse.ts";
 import { HTTP_STATUS_CODES } from "../_shared/_constants/StatusCodes.ts";
+import { ERROR_MESSAGES } from "../_shared/_constants/ErrorMessages.ts";
+import creatememeUsingbucketRepo from "../_repositories/creatememecheckimageRepo.ts";
 
-export default async function creatememeController(req: Request) {
+
+export default async function creatememeController2(req: Request) {
     console.log("Processing request in creatememeController");
 
     try {
+        // Validate request method
+        if(req.method !== "POST"){
+            return new Response(JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Method Not Allowed"], "Only POST method is allowed")), { status: 405 });
+        }
         const body = await req.json();
         console.log("Received object:", body);
 
@@ -43,7 +49,7 @@ export default async function creatememeController(req: Request) {
             }
         }
 
-        const response = await creatememeRepo(meme);
+        const response = await creatememeUsingbucketRepo(meme);
 
         if (response.status !== 201) {
             return new Response(
@@ -53,7 +59,7 @@ export default async function creatememeController(req: Request) {
         }
 
         return new Response(
-            JSON.stringify(new ApiResponseClass(response.status,response.message)),
+            JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES.Created, ERROR_MESSAGES.Created)),
             { status: 201 }
         );
 

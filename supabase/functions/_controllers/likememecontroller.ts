@@ -6,9 +6,17 @@ import { ApiResponseClass } from "../ApiResponse/ApiResponse.ts";
 export default async function likememecontroller(req:Request)
 {
     try{
+    if(req.method !== "POST")
+    {
+        return new Response(
+            JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Method Not Allowed"], "Only POST method allowed")),
+            { status: 405 }
+        );
+    }
+    
     const url = new URL(req.url);
     const meme_id = url.searchParams.get('meme_id');
-    const user_id = req.headers.get('user_id');
+    const user_id = url.searchParams.get('user_id');
     if (!meme_id) {
         return new Response(
             JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Missing meme_id parameter")),
@@ -18,7 +26,7 @@ export default async function likememecontroller(req:Request)
 
     if (!user_id) {
         return new Response(
-            JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Forbidden"], "User not authorized")),
+            JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "user parameter required")),
             { status: 403 }
         );
     }

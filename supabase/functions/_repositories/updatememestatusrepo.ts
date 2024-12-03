@@ -1,43 +1,60 @@
 import supabase from "../_shared/_config/supabaseClient.ts";
 
+export default async function updateMemeStatusRepo(meme_id: string, meme_status: string) {
+  try {
+    // Step 1: 
+    const { data: existingMeme, error: existingMemeError } = await supabase
+    .from("memes")
+    .select("meme_id, user_id")
+    .eq("meme_id", meme_id)
+    .single();
 
-export default async function updateMemeStatusRepo(meme_id:string, status:string,user_id:string)
-{
-    try{
-        // Step 1: Validate if the user exists and has permissions
-        const {data: user, error: userError} = await supabase
-       .from('users')
-       .select('can_edit_meme,is_admin')
-       .eq('user_id',user_id)
-       .single();
+  if (existingMemeError || !existingMeme) {
+    return { status: 404, message: "Meme not found." };
+  }
 
-        if(userError ||!user || (user.can_edit_meme === false)){
-            return {status: 403, message: 'User does not have permission to update meme status.'};
-        }
+  //Validate if the requester has admin privileges
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("user_type")
+      .eq("user_id",existingMeme.user_id)
+      .single();
 
-        if(userError ||!user || (user.is_admin === false)){
-            return {status: 403, message: 'User is not admin'};
-        } 
-
-        // Step 2: check meme exists or not
-        const {data:existingMeme, error: existingMemeError} = await supabase
-       .from('memes')
-       .select('meme_id')
-       .eq('meme_id',meme_id)
-       .single();
-
-        if(existingMemeError ||!existingMeme){
-            return {status: 404, message: 'Meme not found.'};
-        }
-
-        // Step 3: update meme status
-        const {data: updatedMeme, error: updateError} = await supabase
-       .from('memes')
-       .update({status})
-
-
-
+    if (userError || !user) {
+      return { status: 403, message: "User does not exist or lacks permissions." };
     }
-    catch(err){
+
+    if (user.user_type !== "A") {
+      return { status: 403, message: "User is not authorized to update meme status." };
     }
+
+    const validStatuses = ["Approved", "Rejected", "Pending"];
+    if (!validStatuses.includes(meme_status))
+    {
+      return { status: 400, message: "Invalid status value." };
+    }
+   
+
+    // Step 4: Update meme status
+    const { error: updateError } = await supabase
+      .from("memes")
+      .update({meme_status: meme_status ,updated_at: new Date().toISOString()})
+      .eq("meme_id", meme_id);
+
+    if (updateError) {
+      return {
+        status: 500,
+        message: "An error occurred while updating the meme status.",
+      };
+    }
+
+    return { status: 200, message: "Meme status updated successfully." };
+  } 
+  catch (err) {
+    console.error("Unexpected error:", err);
+    return {
+      status: 500,
+      message: "An unexpected error occurred.",
+    };
+}
 }

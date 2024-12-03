@@ -7,6 +7,7 @@ import { ApiResponseClass } from "../ApiResponse/ApiResponse.ts";
 
 Deno.serve(async (req) => {
   try {
+    const url = new URL(req.url);
     if(req.method === HttpMethod.PATCH)
     {
        return await updateMemeStatus(req);

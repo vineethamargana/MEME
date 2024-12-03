@@ -16,19 +16,34 @@ Deno.serve(async (req) => {
   //   );
   // }
 
-  // // Extract token from Authorization header
+  // // // Extract token from Authorization header
   // const token = authHeader.replace("Bearer", "").trim();
   // console.log(token);
 
 
-  // Validate token with Supabase
+  // // Validate token with Supabase
   // const { data: user, error: authError } = await supabase.auth.getUser(token);
+  // console.log("fffffffff",authError);
+  // console.log("--------------------------------------------",user);
+
   // if (authError || !user) {
   //   return new Response(
   //     JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES.Forbidden, ERROR_MESSAGES.AccessDenied)),
   //     { status: 403 }
   //   );
   // }
+  const contentType = req.headers.get("Content-Type");
+  
+  // Check if Content-Type is multipart/form-data (required for file uploads)
+  if (!contentType || !contentType.includes("multipart/form-data")) {
+    return new Response(
+      JSON.stringify({
+        status: 400,
+        message: "Missing or incorrect Content-Type header. Must be multipart/form-data."
+      }),
+      { status: 400 }
+    );
+  }
 
   // Proceed with the file upload if the method is POST
   if (req.method !== HttpMethod.POST) {
@@ -38,19 +53,21 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Handle file upload
   const formData = await req.formData();
   console.log(formData);
-  const file = formData.get("file") as File;
-  if (!file) {
+  
+  const file = formData.get("file");
+  if (!(file instanceof File)) {
     return new Response(
-      JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "No file data found in the request")),
+      JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Invalid file type.")),
       { status: 400 }
     );
   }
 
+  console.log("File type:", file.type);
   const allowedMimeTypes = ["image/jpeg", "image/png"];
   if (!allowedMimeTypes.includes(file.type)) {
+    console.log("Invalid file type");
     return new Response(
       JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Invalid file type. Only PNG and JPEG are allowed.")),
       { status: 400 }
@@ -58,6 +75,7 @@ Deno.serve(async (req) => {
   }
 
   const maxFileSize = 5 * 1024 * 1024; // 5MB
+  console.log("File size:", file.size);
   if (file.size > maxFileSize) {
     return new Response(
       JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "File size exceeds 5MB limit")),
@@ -65,28 +83,24 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Define the bucket name and file path
   const bucketName = "memes";
   const filePath = `memes/${Date.now()}-${file.name}`;
 
-  // Upload the file to Supabase
   const { data, error } = await supabase
     .storage
     .from(bucketName)
-    .upload(filePath, file.stream(), {
-      cacheControl: "3600",
-      upsert: true,
-    });
+    .upload(filePath, file.stream(), { cacheControl: "3600", upsert: true });
 
   if (error) {
+    console.log("Upload Error:", error.message);
     return new Response(
       JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES.Failed, "File upload failed. Please try again.")),
       { status: 500 }
     );
   }
 
-  // Get the public URL for the uploaded file
   const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+  console.log("Public URL data:", publicData);
 
   if (!publicData?.publicUrl) {
     return new Response(
@@ -96,7 +110,6 @@ Deno.serve(async (req) => {
   }
 
   const publicURL = publicData.publicUrl;
-
   return new Response(
     JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES.OK, "File uploaded successfully", { image_url: publicURL })),
     { status: 200 }

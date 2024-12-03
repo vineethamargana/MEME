@@ -5,6 +5,13 @@ import { ERROR_MESSAGES } from "../_shared/_constants/ErrorMessages.ts";
 
 export default async function getmemebyIDController(req: Request) {
     try {
+        if(req.method !== "GET")
+        {
+            return new Response(
+                JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Method Not Allowed"], "Only GET method is allowed")),
+                { status: 405 }
+            );
+        }
         const url = new URL(req.url);
         const meme_id = url.searchParams.get('meme_id');
         

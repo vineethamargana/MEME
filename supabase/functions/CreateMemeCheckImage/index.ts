@@ -1,4 +1,4 @@
-import creatememeController from "../_controllers/createMemeController.ts";
+import creatememeController2 from "../_controllers/creatememeuploadimagecontroller.ts";
 import { ERROR_MESSAGES } from "../_shared/_constants/ErrorMessages.ts";
 import { HttpMethod } from "../_shared/_constants/HttpMethods.ts";
 import { HTTP_STATUS_CODES } from "../_shared/_constants/StatusCodes.ts";
@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     try {
         const method = req.method;
         if (method === HttpMethod.POST) {
-            return await creatememeController(req);  
+            return await creatememeController2(req);  
         }
         return new Response(JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Method not allowed")), { status: 405 });
     } catch (error) {

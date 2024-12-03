@@ -2,7 +2,7 @@
     meme_id?: string;  // UUID
     user_id: string;  // UUID
     meme_title: string;  // Meme title (string)
-    image_url: string;  // URL to the meme image (string)
+    image_url: any;  // URL to the meme image (string)
     created_at: string;  // Timestamp (string format)
     updated_at: string;  // Timestamp (string format)
     meme_status: "Pending" | "Approved" | "Rejected";  // Meme status (enum)
@@ -16,7 +16,7 @@
     meme_id?: string;  // UUID
     user_id: string;  // UUID
     meme_title: string;  // Meme title (string)
-    image_url: string;  // URL to the meme image (string)
+    image_url: any;  // URL to the meme image (string)
     created_at: string;  // Timestamp (string format)
     updated_at: string;  // Timestamp (string format)
     meme_status: "Pending" | "Approved" | "Rejected";  // Meme status (enum)

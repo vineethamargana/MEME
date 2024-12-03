@@ -4,9 +4,16 @@ import { HTTP_STATUS_CODES } from "../_shared/_constants/StatusCodes.ts";
 
 export default async function DeletememebyID(req: Request) {
     try {
+        if (req.method !== 'DELETE') 
+            {
+                return new Response(
+                    JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Method not allowed")),
+                    { status: 405 }
+                );
+            }
+            
         const url = new URL(req.url);
         const meme_id = url.searchParams.get("meme_id");
-        const user_id = req.headers.get("user_id"); // User ID from header
         if (!meme_id) {
             return new Response(
                 JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Missing meme_id parameter")),
@@ -14,14 +21,7 @@ export default async function DeletememebyID(req: Request) {
             );
         }
 
-        if (!user_id) {
-            return new Response(
-                JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Forbidden"], "User not authorized")),
-                { status: 403 }
-            );
-        }
-
-        const result = await deleteMemeByIdRepository(meme_id, user_id);
+        const result = await deleteMemeByIdRepository(meme_id);
 
         if (result.status === 204) {
             return new Response(null, { status: 204 }); // No Content response for successful deletion
