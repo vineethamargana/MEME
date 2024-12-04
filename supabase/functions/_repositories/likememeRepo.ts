@@ -6,7 +6,7 @@ export default async function likeMemeRepository(meme_id: string, user_id: strin
         //1.
         const { data: existingMeme, error: fetchError } = await supabase
             .from("memes")
-            .select("like_count")
+            .select("*")
             .eq("meme_id", meme_id)
             .single();
 
@@ -18,7 +18,7 @@ export default async function likeMemeRepository(meme_id: string, user_id: strin
         //2.
         const { data: existingUser, error: userError } = await supabase
             .from("users")
-            .select("account_status")
+            .select("*")
             .eq("user_id", user_id)
             .single();
 
@@ -63,6 +63,21 @@ export default async function likeMemeRepository(meme_id: string, user_id: strin
 
         if (updateError) {
             return { status: 500, message: `Failed to update meme like count: ${updateError.message}` };
+        }
+
+        const notificationContent = `Your meme "${existingMeme.meme_title}" received a new like!`;
+        const { error: notificationError } = await supabase
+            .from("notifications")
+            .insert({
+                user_id: existingUser.user_id,
+                content: notificationContent,
+                type: "like",
+                created_at: new Date().toISOString(),
+                read_status: false,
+            });
+
+        if (notificationError) {
+            console.error("Failed to notify meme owner:", notificationError);
         }
 
         // Return success response

@@ -13,11 +13,19 @@ export default async function updateMemebyId(req: Request) {
         }
         const url = new URL(req.url);
         const meme_id = url.searchParams.get("meme_id");
+        const user_id = url.searchParams.get("user_id");
 
         if (!meme_id) {
             return new Response(
                 JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Missing meme_id parameter")),
                 { status: 400 }
+            );
+        }
+
+        if (!user_id) {
+            return new Response(
+                JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Missing user_id parameter")),
+                { status: 403 }
             );
         }
 
@@ -56,7 +64,7 @@ export default async function updateMemebyId(req: Request) {
         }
 
         // Call repository to update meme
-        const result = await updateMemebyIdRepo(meme, meme_id);
+        const result = await updateMemebyIdRepo(meme, meme_id, user_id);
 
         return new Response(
             JSON.stringify(new ApiResponseClass(result.status, result.message, result.data)),

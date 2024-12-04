@@ -14,14 +14,20 @@ export default async function DeletememebyID(req: Request) {
             
         const url = new URL(req.url);
         const meme_id = url.searchParams.get("meme_id");
+        const user_id = url.searchParams.get("user_id");
         if (!meme_id) {
             return new Response(
                 JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Missing meme_id parameter")),
                 { status: 400 }
             );
         }
-
-        const result = await deleteMemeByIdRepository(meme_id);
+        if(!user_id){
+            return new Response(
+                JSON.stringify(new ApiResponseClass(HTTP_STATUS_CODES["Bad Request"], "Missing user_id parameter")),
+                { status: 403 }
+            );
+        }
+        const result = await deleteMemeByIdRepository(meme_id,user_id);
 
         if (result.status === 204) {
             return new Response(null, { status: 204 }); // No Content response for successful deletion

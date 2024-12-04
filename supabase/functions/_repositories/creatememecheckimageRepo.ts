@@ -6,6 +6,7 @@ async function uploadImageToBucket(
     imageUrl: string,
     memeTitle: string,
 ): Promise<string | null> {
+    console.log("Uploading image");
     try {
         const fileName = `${Date.now()}-${memeTitle}.jpg`;
         const bucketName = "memes";
@@ -17,7 +18,7 @@ async function uploadImageToBucket(
             console.error("Error fetching the image:", response.statusText);
             return null;
         }
-
+        console.log("fetched image:");
         const contentType = response.headers.get("Content-Type");
         if (!contentType?.startsWith("image/")) {
             console.error("Fetched file is not a valid image.");
@@ -27,6 +28,7 @@ async function uploadImageToBucket(
         const file = await response.blob();
 
         // Upload the file to Supabase
+        console.log("uploading to bucket");
         const { data, error } = await supabase.storage
             .from(bucketName)
             .upload(filePath, file, {
@@ -52,6 +54,7 @@ async function uploadImageToBucket(
 export default async function creatememeUsingbucketRepo(meme: MemeImpl) {
     try {
         // Step 1: Validate user permissions
+        console.log("control comes to repo");
         const { data: user, error: userError } = await supabase
             .from("users")
             .select("user_type")

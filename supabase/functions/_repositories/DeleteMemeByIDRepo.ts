@@ -1,6 +1,6 @@
 import supabase from "../_shared/_config/supabaseClient.ts";
 
-export default async function deleteMemeByIdRepository(meme_id: string) 
+export default async function deleteMemeByIdRepository(meme_id: string,user_id:string) 
 {
     try {
         // Fetch the meme 
@@ -17,12 +17,12 @@ export default async function deleteMemeByIdRepository(meme_id: string)
         const {data:existinguser,error:existingusererror} = await supabase
         .from("users")
         .select("*")
-        .eq("user_id", existingMeme.user_id).single();
+        .eq("user_id", user_id).single();
 
         if (existingusererror ||!existinguser) {
             return { status: 403, message: "User not found." };
         }
-        if (existinguser.user_type !== 'M'  || existinguser.user_type !=='A' ) {
+        if (existinguser.user_type !== 'M'  && existinguser.user_type !=='A' ) {
             return { status: 403, message: "User not authorized to delete this meme." };
         }
 

@@ -11,7 +11,7 @@ export default async function getAllMemes(req:Request) {
                 { status: 405 }
             );
         }
-        const result = await getAllMemesRepo();
+        const result = await getAllMemesRepo(req);
 
         if (result.status !== 200) {
             return new Response(
